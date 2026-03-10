@@ -6,10 +6,21 @@ import { createResponse } from "../utils/response.js";
 import { getNotionToken } from "../utils/index.js";
 
 export async function pageRoute(c: HandlerRequest) {
-  const pageId = parsePageId(c.req.param("pageId"));
+  const pageId = parsePageId(c.req.param("pageId") || "");
   const notionToken = getNotionToken(c);
 
-  const page = await fetchPageById(pageId!, notionToken);
+  if (!pageId) {
+    return createResponse(
+      { error: 'missing or invalid "pageId"' },
+      {
+        headers: { "Content-Type": "application/json" },
+        statusCode: 400,
+        request: c,
+      }
+    );
+  }
+
+  const page = await fetchPageById(pageId, notionToken);
 
   const baseBlocks = page.recordMap.block;
 
